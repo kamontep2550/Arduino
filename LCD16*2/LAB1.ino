@@ -1,29 +1,36 @@
 #include <Wire.h>
-#include <LiquidCrystal_I2C.h>
-
-// ประกาศ lcd ไว้ตรงนี้ ต้องอยู่นอก setup/loop
-LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 void setup() {
-  lcd.init();        // เริ่มต้นจอ
-  lcd.backlight();   // เปิดไฟพื้นหลัง
+  Wire.begin();
+  Serial.begin(9600);
 
-  lcd.setCursor(0, 0);
-  lcd.print("LCD TEST OK");
-
-  lcd.setCursor(0, 1);
-  lcd.print("I2C 16x2");
+  Serial.println("I2C Scanner");
 }
 
 void loop() {
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("Running...");
+  byte error, address;
+  int nDevices = 0;
 
-  static int count = 0;
-  lcd.setCursor(0, 1);
-  lcd.print("Count: ");
-  lcd.print(count++);
+  Serial.println("Scanning...");
 
-  delay(1000);
+  for (address = 1; address < 127; address++) {
+    Wire.beginTransmission(address);
+    error = Wire.endTransmission();
+
+    if (error == 0) {
+      Serial.print("I2C device found at address 0x");
+      if (address < 16)
+        Serial.print("0");
+      Serial.println(address, HEX);
+
+      nDevices++;
+    }
+  }
+
+  if (nDevices == 0)
+    Serial.println("No I2C devices found\n");
+  else
+    Serial.println("Done\n");
+
+  delay(5000);
 }
